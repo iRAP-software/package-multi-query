@@ -22,6 +22,7 @@ namespace iRAP\MultiQuery;
 
 class MultiQuery
 {
+    /* @var $m_connection \mysqli */
     private $m_connection;
     private $m_results = array();
     private $m_queries = array();
@@ -39,34 +40,49 @@ class MultiQuery
     
     /**
      * After having added all the queries you want to execute, call this method to execute the 
-     * queries on the database and retrieve the results.
+     * queries on the database and retrieve the results. The code below can be a little confusing
+     * because mysqli_store_result will return false if the query succeeded but did not return
+     * a resultset, so you need to use this with the return from next_result() which will tell
+     * you whether the query succeeded or failed (1 or false)
      */
     public function run()
     {
         $queries_string = implode(';', $this->m_queries);
-        $queries_string .= ';';
-        
-        mysqli_multi_query($this->m_connection, $queries_string);
         
         $resultIndex = 0;
-        do 
+        
+        do
         {
-            /* store first result set */
-            if ($result = $this->m_connection->store_result()) 
+            if ($resultIndex === 0)
+            {
+                $resultBool = mysqli_multi_query($this->m_connection, $queries_string);
+            }
+            else
+            {
+                $resultBool = $this->m_connection->next_result();
+            }
+            
+            $resultSet = mysqli_store_result($this->m_connection);
+            
+            if ($resultSet === FALSE) # first query may not have returned a resultset, just a true or false.
+            {
+                $this->m_results[$resultIndex] = $resultBool;
+            }
+            else
             {
                 $result_array = array();
-
-                while ($row = $result->fetch_assoc()) 
+                
+                while ($row = $resultSet->fetch_assoc()) 
                 {
                     $result_array[] = $row;
                 }
-
+                
                 $this->m_results[$resultIndex] = $result_array;
-                $result->free();
+                $resultSet->free();
             }
-
-            $resultIndex ++;
-        } while (mysqli_more_results($this->m_connection) && mysqli_next_result($this->m_connection));
+            
+            $resultIndex++;
+        } while($this->m_connection->more_results());
     }
     
     
@@ -80,7 +96,7 @@ class MultiQuery
     public function get_merged_result()
     {
         $masterSet = array();
-
+        
         foreach ($this->m_results as $resultSet)
         {
             foreach ($resultSet as $row)
