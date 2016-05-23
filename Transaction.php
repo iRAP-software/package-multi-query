@@ -133,13 +133,11 @@ class Transaction
         
         if (!$queriesSucceeded)
         {
-            print "queries did not succeed." . PHP_EOL;
             $this->m_connection->rollback();
             $this->m_status = self::STATE_FAILED;
         }
         else
         {
-            print "queries succeeded." . PHP_EOL;
             if ($this->m_connection->commit())
             {
                 $this->m_status = self::STATE_SUCCEEDED;
