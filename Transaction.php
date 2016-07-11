@@ -115,20 +115,21 @@ class Transaction
         
         $queriesSucceeded = true;
         
-        # Safety check, should not happen.
-        if (count($results) != count($this->m_queries))
+        if (count($this->m_multiQuery->get_errors()) > 0)
         {
-            $errMsg = "Transaction number of results [" . count($results) . "] does not equal the number of queries [" . count($this->m_queries) . "].";
-            throw new \Exception($errMsg);
+            $queriesSucceeded = false;
         }
-        
-        foreach ($results as $result)
+        else if (count($results) != count($this->m_queries))
         {
-            if ($result === FALSE)
-            {
-                $queriesSucceeded = false;
-                break;
-            }
+            # Safety check, should not happen if there were no errors
+            $errMsg = "Transaction number of results [" . count($results) . "] does not equal "
+                    . "the number of queries [" . count($this->m_queries) . "] so rolling back.";
+            
+            print $errMsg . PHP_EOL;
+            
+            print "results: " . print_r($results, true);
+            trigger_error($errMsg, E_USER_WARNING);
+            $queriesSucceeded = false;
         }
         
         if (!$queriesSucceeded)
@@ -165,4 +166,3 @@ class Transaction
     
     public function getStatus() { return $this->m_status; }
 }
-

@@ -26,6 +26,7 @@ class MultiQuery
     private $m_connection;
     private $m_results = array();
     private $m_queries = array();
+    private $m_errors = array();
     
     public function __construct($mysqli)
     {
@@ -62,11 +63,21 @@ class MultiQuery
                 $resultBool = $this->m_connection->next_result();
             }
             
+            $errorStr = mysqli_error($this->m_connection);
+            
+            if ($errorStr !== "")
+            {
+                print "there was an error: $errorStr" . PHP_EOL;
+                $this->m_errors[$resultIndex] = $errorStr;
+            }
+            
+            // Dont forget that unlike mysqli->query, mysqli_store_result returns false for any 
+            // queries that did not return a resultset, such as an insert statement.
             $resultSet = mysqli_store_result($this->m_connection);
             
             if ($resultSet === FALSE) # first query may not have returned a resultset, just a true or false.
             {
-                $this->m_results[$resultIndex] = $resultBool;
+                $this->m_results[$resultIndex] = false;
             }
             else
             {
@@ -138,5 +149,15 @@ class MultiQuery
     public function get_results() 
     {
         return $this->m_results;
+    }
+    
+    
+    /**
+     * Return all of the errors for the queries. 
+     * @return array - list of errors indexed by the query id.
+     */
+    public function get_errors() 
+    {
+        return $this->m_errors;
     }
 }
