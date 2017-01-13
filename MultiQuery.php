@@ -22,20 +22,34 @@ namespace iRAP\MultiQuery;
 
 class MultiQuery
 {
+    const STATE_NOT_SENT = 0; # multi query has not been sent
+    const STATE_SUCCEEDED = 1; # multi query sent and succeeded
+    const STATE_ERRORS = 2; # multiquery sent but had errors.
+    
     /* @var $m_connection \mysqli */
     private $m_connection;
     private $m_results = array();
     private $m_queries = array();
     private $m_errors = array();
+    private $m_status;
     
     public function __construct($mysqli)
     {
         $this->m_connection = $mysqli;
+        $this->m_status = self::STATE_NOT_SENT;
     }
     
+    
+    /**
+     * Add a query to the list of queries to send at once.
+     * @param string $query - the SQL query to add to this multiquery. E.g. "SHOW TABLES";
+     * @return int - the index of the query that you just added. You can use this later to get
+     *               the result for that query from this objects results.
+     */
     public function addQuery($query)
     {
         $this->m_queries[] = $query;
+        return count($this->m_queries) - 1;
     }
     
     
@@ -49,7 +63,6 @@ class MultiQuery
     public function run()
     {
         $queries_string = implode(';', $this->m_queries);
-        
         $resultIndex = 0;
         
         do
@@ -67,7 +80,6 @@ class MultiQuery
             
             if ($errorStr !== "")
             {
-                print "there was an error: $errorStr" . PHP_EOL;
                 $this->m_errors[$resultIndex] = $errorStr;
             }
             
@@ -81,19 +93,20 @@ class MultiQuery
             }
             else
             {
-                $result_array = array();
-                
-                while ($row = $resultSet->fetch_assoc()) 
-                {
-                    $result_array[] = $row;
-                }
-                
-                $this->m_results[$resultIndex] = $result_array;
-                $resultSet->free();
+                $this->m_results[$resultIndex] = $resultSet;
             }
             
             $resultIndex++;
         } while($this->m_connection->more_results());
+        
+        if (count($this->m_errors) > 0)
+        {
+            $this->m_status = self::STATE_ERRORS;
+        }
+        else
+        {
+            $this->m_status = self::STATE_SUCCEEDED;
+        }
     }
     
     
@@ -106,11 +119,16 @@ class MultiQuery
      */ 
     public function get_merged_result()
     {
+        if (count($this->m_errors) > 0)
+        {
+            throw new \Exception("Cannot get merged result as there were errors in your multiquery.");
+        }
+        
         $masterSet = array();
         
         foreach ($this->m_results as $resultSet)
         {
-            foreach ($resultSet as $row)
+            while (($row = $resultSet->fetch_assoc()) != null)
             {
                 $masterSet[] = $row;
             }
@@ -130,6 +148,11 @@ class MultiQuery
      */
     public function get_result($index)
     {
+        if (count($this->m_errors) > 0)
+        {
+            throw new \Exception("Cannot get result as there were errors in your multiquery.");
+        }
+        
         if (isset($this->m_results[$index]))
         {
             return $this->m_results[$index];
@@ -148,6 +171,11 @@ class MultiQuery
      */
     public function get_results() 
     {
+        if (count($this->m_errors) > 0)
+        {
+            throw new \Exception("Cannot get results as there were errors in your multiquery.");
+        }
+        
         return $this->m_results;
     }
     
@@ -159,5 +187,25 @@ class MultiQuery
     public function get_errors() 
     {
         return $this->m_errors;
+    }
+    
+    
+    /**
+     * Return the number of errors there were
+     * @return int - the number of errors there were.
+     */
+    public function get_error_count() 
+    {
+        return count($this->m_errors);
+    }
+    
+    
+    /**
+     * Get the status of this multi query.
+     * @return int
+     */
+    public function getStatus()
+    {
+        return $this->m_status;
     }
 }

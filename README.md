@@ -3,6 +3,7 @@ This is a package for simplifying the sending multiple PHP Mysqli queries in a s
 
 ## Example Usage
 
+### Basic Example
 ```
 $db = new mysqli($host, $user, $password, $db_name);
 $multiQuery = new iRAP\MultiQuery\MultiQuery($db);
@@ -12,7 +13,61 @@ $multiQuery->addQuery("DROP TABLE `table3`");
 $multiQuery->run();
 ```
 
-@TODO - Include example of getting the values/outputs.
+### Full Example
+In the example below we run lots of different queries and use the index we get when we added the 
+query in order to get it's result from the multiQuery object later. We also demonstrate how to
+check that nothing went wrong by checking the status of the object after having run it.
+
+```
+$connection = new mysqli('host', 'user', 'password', 'db_name');
+
+$multiQuery = new iRAP\MultiQuery\MultiQuery($connection);
+$select1QueryIndex = $multiQuery->addQuery('SELECT * FROM `table1`');
+$showTablesQueryIndex = $multiQuery->addQuery('SHOW TABLES`');
+$select2QueryIndex = $multiQuery->addQuery('SELECT * FROM `table2`');
+$multiQuery->run();
+
+if ($multiQuery->getStatus() === iRAP\MultiQuery\MultiQuery::STATE_SUCCEEDED)
+{
+    $errors = $multiQuery->get_errors();
+    // do something with the errors array such as use them in an exception message....
+}
+else 
+{
+    $tablesResult = $multiQuery->get_result($showTablesQueryIndex);
+
+    if ($tablesResult === FALSE)
+    {
+        throw new Exception("Failed to fetch tables");
+    }
+    else
+    {
+        $tables = array();
+
+        while (($row = $tablesResult->fetch_array()) !== null)
+        {
+            $tables[] = $row[0];
+        }
+
+        print "tables: " . implode(", ", $tables);
+    }
+}
+```
+
+### Merged Result Example
+If you have partitioned your data using separate tables (e.g. the tables all have the same
+structure), then you may want to make use of the get_merged_result() method to just stitch
+all the query results into one
+```
+# // Example 2 - Fetch data from two tables that have exactly the same structure 
+# // e.g. a case of partitioning data using table names like "dataset1", "dataset2"
+$multiQuery2 = new iRAP\MultiQuery\MultiQuery($connection);
+$multiQuery2->addQuery('SELECT * FROM `table1`');
+$multiQuery2->addQuery('SELECT * FROM `table2`');
+$multiQuery2->run();
+$mergedResult = $multiQuery2->get_merged_result();
+print "merged result: " . print_r($mergedResult, true) . PHP_EOL;
+```
 
 
 ## Transactions
