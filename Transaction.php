@@ -110,16 +110,21 @@ class Transaction
             $this->m_multiQuery->addQuery($query);
         }
         
-        $this->m_multiQuery->run();        
-        $results = $this->m_multiQuery->get_results();
+        $this->m_multiQuery->run();
         
-        $queriesSucceeded = true;
-        
-        if (count($this->m_multiQuery->get_errors()) > 0)
+        try
         {
+            $results = $this->m_multiQuery->get_results();
+            $queriesSucceeded = true;
+        } 
+        catch (\Exception $ex) 
+        {
+            // there were errors in the multi query so there are no results. loop over errors 
+            // instead.
             $queriesSucceeded = false;
         }
-        else if (count($results) != count($this->m_queries))
+        
+        if ($queriesSucceeded && count($results) != count($this->m_queries))
         {
             # Safety check, should not happen if there were no errors
             $errMsg = "Transaction number of results [" . count($results) . "] does not equal "
