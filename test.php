@@ -20,8 +20,8 @@ function run()
 function init()
 {
     $host = "database.irap-dev.org";
-    $user = "root";
-    $password = "hickory2000";
+    $user = "";
+    $password = "";
     $database = "test";
     
     $mysqli = new \mysqli($host, $user, $password, $database);
@@ -49,7 +49,7 @@ function transactionTest($mysqli)
     $insertTransaction->addQuery("INSERT INTO `Persons` SET `FirstName`='Joe', `LastName`='Smith'");
     $insertTransaction->addQuery("INSERT INTO `Persons` SET `FirstName`='Samantha', `LastName`='Smith'");
     $insertTransaction->run();
-
+    
     $selectTransaction = new iRAP\MultiQuery\Transaction($mysqli);
     $selectTransaction->addQuery("SELECT * FROM `Persons`");
     $selectTransaction->addQuery("SELECT * FROM `Persons`");
@@ -76,13 +76,13 @@ function transactionTest($mysqli)
 function badQueryTest(mysqli $mysqli)
 {
     $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli);
-
+    
     $multiQuery->addQuery('SELECT * FROM `Persons`');
     $multiQuery->addQuery('bad query');
     $multiQuery->addQuery('SHOW TABLES');
-
+    
     $multiQuery->run();
-
+    
     if ($multiQuery->getStatus() === iRAP\MultiQuery\MultiQuery::STATE_ERRORS)
     {
         try
@@ -107,17 +107,17 @@ function badQueryTest(mysqli $mysqli)
 function goodMultiQueryTest(mysqli $mysqli)
 {
     $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli);
-
+    
     $select1QueryIndex    = $multiQuery->addQuery('SELECT * FROM `Persons`');
     $showTablesQueryIndex = $multiQuery->addQuery('SHOW TABLES');
     $select2QueryIndex    = $multiQuery->addQuery('SELECT * FROM `Persons`');
-
+    
     $multiQuery->run();
-
+    
     if ($multiQuery->getStatus() === iRAP\MultiQuery\MultiQuery::STATE_SUCCEEDED)
     {
-         $tablesResult = $multiQuery->get_result($showTablesQueryIndex);
-
+        $tablesResult = $multiQuery->get_result($showTablesQueryIndex);
+        
         if ($tablesResult === FALSE)
         {
             print "goodMultiQueryTest: FAILED" . PHP_EOL;
