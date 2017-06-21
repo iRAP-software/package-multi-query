@@ -11,8 +11,8 @@ require_once(__DIR__ . '/Transaction.php');
 
 
 $host = "localhost";
-$user = "root";
-$password = "hickory2000";
+$user = "";
+$password = "";
 $database = "test";
 
 $mysqli = new \mysqli($host, $user, $password, $database);
