@@ -14,11 +14,16 @@
         }
     ],
     "require": {
-        "php": ">=7.0.0"
+        "php": ">=7.0"
     },
     "autoload": {
         "psr-4": {
-            "iRAP\\MultiQuery\\": ""
+            "iRAP\\MultiQuery\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "iRAP\\MultiQuery\\Testing\\": "testing"
         }
     }
 }
