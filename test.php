@@ -55,7 +55,7 @@ function transactionTest($mysqli)
     $selectTransaction->addQuery("SELECT * FROM `Persons`");
     $selectTransaction->run();
 
-    $results = $selectTransaction->getMultiQueryObject()->get_merged_result();
+    $results = $selectTransaction->getMultiQueryObject()->getMergedResult();
     
     if ($selectTransaction->getStatus() === \iRAP\MultiQuery\Transaction::STATE_SUCCEEDED)
     {

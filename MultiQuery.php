@@ -117,7 +117,7 @@ class MultiQuery
      * WARNING: This method will chew through memory and is very inefficient, you may wwant to use
      * get_results() instead.
      */ 
-    public function get_merged_result()
+    public function getMergedResult()
     {
         if (count($this->m_errors) > 0)
         {

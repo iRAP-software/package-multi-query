@@ -48,7 +48,7 @@ function run()
     $multiQuery2->addQuery('SELECT * FROM `table1`');
     $multiQuery2->addQuery('SELECT * FROM `table2`');
     $multiQuery2->run();
-    $mergedResult = $multiQuery2->get_merged_result();
+    $mergedResult = $multiQuery2->getMergedResult();
     print "merged result: " . print_r($mergedResult, true) . PHP_EOL;
 }
 
