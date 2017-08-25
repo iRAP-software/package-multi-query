@@ -4,8 +4,10 @@
  * A quick script to test this package.
  */
 
-require_once(__DIR__ . '/MultiQuery.php');
-require_once(__DIR__ . '/Transaction.php');
+require_once(__DIR__ . '/settings.php');
+require_once(__DIR__ . '/../src/MultiQuery.php');
+require_once(__DIR__ . '/../src/Transaction.php');
+
 
 function run()
 {
@@ -19,12 +21,7 @@ function run()
 
 function init()
 {
-    $host = "database.irap-dev.org";
-    $user = "";
-    $password = "";
-    $database = "test";
-    
-    $mysqli = new \mysqli($host, $user, $password, $database);
+    $mysqli = new \mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
     
     $createQuery = 
         "CREATE TABLE `Persons` (
@@ -45,19 +42,23 @@ function init()
  */
 function transactionTest($mysqli)
 {
-    $insertTransaction = new iRAP\MultiQuery\Transaction($mysqli);
-    $insertTransaction->addQuery("INSERT INTO `Persons` SET `FirstName`='Joe', `LastName`='Smith'");
-    $insertTransaction->addQuery("INSERT INTO `Persons` SET `FirstName`='Samantha', `LastName`='Smith'");
-    $insertTransaction->run();
+    $insertQueries = array(
+        "INSERT INTO `Persons` SET `FirstName`='Joe', `LastName`='Smith'",
+        "INSERT INTO `Persons` SET `FirstName`='Samantha', `LastName`='Smith'",
+    );
     
-    $selectTransaction = new iRAP\MultiQuery\Transaction($mysqli);
-    $selectTransaction->addQuery("SELECT * FROM `Persons`");
-    $selectTransaction->addQuery("SELECT * FROM `Persons`");
-    $selectTransaction->run();
-
+    $insertTransaction = new iRAP\MultiQuery\Transaction($mysqli, $insertQueries);
+    
+    
+    $selectQueries = array(
+        "SELECT * FROM `Persons`",
+        "SELECT * FROM `Persons`",
+    );
+    
+    $selectTransaction = new iRAP\MultiQuery\Transaction($mysqli, $selectQueries);
     $results = $selectTransaction->getMultiQueryObject()->getMergedResult();
     
-    if ($selectTransaction->getStatus() === \iRAP\MultiQuery\Transaction::STATE_SUCCEEDED)
+    if ($selectTransaction->wasSuccessful())
     {
        print "Transaction test: PASSED" . PHP_EOL;
     }
@@ -75,13 +76,13 @@ function transactionTest($mysqli)
  */
 function badQueryTest(mysqli $mysqli)
 {
-    $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli);
+    $queries = array(
+        'SELECT * FROM `Persons`',
+        'bad query',
+        'SHOW TABLES',
+    );
     
-    $multiQuery->addQuery('SELECT * FROM `Persons`');
-    $multiQuery->addQuery('bad query');
-    $multiQuery->addQuery('SHOW TABLES');
-    
-    $multiQuery->run();
+    $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli, $queries);
     
     if ($multiQuery->hasErrors())
     {
@@ -106,13 +107,14 @@ function badQueryTest(mysqli $mysqli)
 
 function goodMultiQueryTest(mysqli $mysqli)
 {
-    $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli);
+    $queries = array(
+        'SELECT * FROM `Persons`',
+        'SHOW TABLES',
+        'SELECT * FROM `Persons`'
+    );
     
-    $select1QueryIndex    = $multiQuery->addQuery('SELECT * FROM `Persons`');
-    $showTablesQueryIndex = $multiQuery->addQuery('SHOW TABLES');
-    $select2QueryIndex    = $multiQuery->addQuery('SELECT * FROM `Persons`');
-    
-    $multiQuery->run();
+    $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli, $queries);
+    $showTablesQueryIndex = 1;
     
     if ($multiQuery->wasSuccessful())
     {

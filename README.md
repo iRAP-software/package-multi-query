@@ -6,11 +6,14 @@ This is a package for simplifying the sending multiple PHP Mysqli queries in a s
 ### Basic Example
 ```
 $db = new mysqli($host, $user, $password, $db_name);
-$multiQuery = new iRAP\MultiQuery\MultiQuery($db);
-$multiQuery->addQuery("DROP TABLE `table1`");
-$multiQuery->addQuery("DROP TABLE `table2`");
-$multiQuery->addQuery("DROP TABLE `table3`");
-$multiQuery->run();
+
+$queries = array(
+    "DROP TABLE `table1`",
+    "DROP TABLE `table2`",
+    "DROP TABLE `table3`"
+);
+
+$multiQuery = new iRAP\MultiQuery\MultiQuery($db, $queries);
 ```
 
 ### Full Example
@@ -21,11 +24,18 @@ check that nothing went wrong by checking the status of the object after having 
 ```
 $connection = new mysqli('host', 'user', 'password', 'db_name');
 
-$multiQuery = new iRAP\MultiQuery\MultiQuery($connection);
-$select1QueryIndex = $multiQuery->addQuery('SELECT * FROM `table1`');
-$showTablesQueryIndex = $multiQuery->addQuery('SHOW TABLES`');
-$select2QueryIndex = $multiQuery->addQuery('SELECT * FROM `table2`');
-$multiQuery->run();
+$queries = array(
+    'SELECT * FROM `table1`',
+    'SHOW TABLES`',
+    'SELECT * FROM `table2`'
+);
+
+$select1QueryIndex = 0;
+$showTablesQueryIndex = 1;
+$select2QueryIndex = 2;
+
+$multiQuery = new iRAP\MultiQuery\MultiQuery($connection, $queries);
+
 
 if ($multiQuery->hasErrors())
 {
@@ -34,8 +44,8 @@ if ($multiQuery->hasErrors())
 }
 else 
 {
-    $tablesResult = $multiQuery->get_result($showTablesQueryIndex);
-
+    $tablesResult = $multiQuery->getResult($showTablesQueryIndex);
+    
     if ($tablesResult === FALSE)
     {
         throw new Exception("Failed to fetch tables");
@@ -61,11 +71,14 @@ all the query results into one
 ```
 # // Example 2 - Fetch data from two tables that have exactly the same structure 
 # // e.g. a case of partitioning data using table names like "dataset1", "dataset2"
-$multiQuery2 = new iRAP\MultiQuery\MultiQuery($connection);
-$multiQuery2->addQuery('SELECT * FROM `table1`');
-$multiQuery2->addQuery('SELECT * FROM `table2`');
-$multiQuery2->run();
-$mergedResult = $multiQuery2->get_merged_result();
+
+$queries = array(
+    'SELECT * FROM `table1`',
+    'SELECT * FROM `table2`'
+);
+
+$multiQuery2 = new iRAP\MultiQuery\MultiQuery($connection, $queries);
+$mergedResult = $multiQuery2->getMergedResult();
 print "merged result: " . print_r($mergedResult, true) . PHP_EOL;
 ```
 
@@ -74,12 +87,14 @@ print "merged result: " . print_r($mergedResult, true) . PHP_EOL;
 This package also has a class to help with making MySQL transactions. Below is an example of using this class:
 
 ```
-$transaction = new iRAP\MultiQuery\Transaction($mysqli);
-$transaction->addQuery('DELETE FROM `myTable` WHERE id = ' . $id);
-$transaction->addQuery('INSERT INTO `myTable` SELECT * FROM `myTable2` WHERE id = ' . $id);
-$transaction->run();
+$queries = array(
+    'DELETE FROM `myTable` WHERE id = ' . $id,
+    'INSERT INTO `myTable` SELECT * FROM `myTable2` WHERE id = ' . $id
+);
 
-if ($transaction->getStatus() !== iRAP\MultiQuery\Transaction::STATE_SUCCEEDED)
+$transaction = new iRAP\MultiQuery\Transaction($mysqli, $queries);
+
+if (!$transaction->wasSuccessful())
 {
     throw new Exception("Failed to reset the record in countermeasures_model::interim_calcs");
 }
@@ -88,7 +103,11 @@ if ($transaction->getStatus() !== iRAP\MultiQuery\Transaction::STATE_SUCCEEDED)
 The transaction will automatically detect and rollback if **any** of the queries within the transaction object fail. By default, if the transaction fails the object will not retry, but you can configure it to do so. Below is the same example, but this time we have set it to retry up to 5 times when the transaction is run, and to wait 3 seconds between each attempt. The default for the sleep period if you do not set it, is 1 second.
 
 ```
-$transaction = new iRAP\MultiQuery\Transaction($mysqli, $attempts=5, $sleepPeriod=3);
-$transaction->addQuery('DELETE FROM `myTable` WHERE id = ' . $id);
+$queries = array(
+    'DELETE FROM `myTable` WHERE id = ' . $id,
+    ... # more quries here.
+);
+
+$transaction = new iRAP\MultiQuery\Transaction($mysqli, $queries, $attempts=5, $sleepPeriod=3);
 ...
 ```

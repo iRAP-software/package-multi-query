@@ -91,7 +91,9 @@ class MultiQuery
      * handling of columns that exist in some datasets and not others, they will just be not set.
      * WARNING: This method will chew through memory and is very inefficient, you may wwant to use
      * get_results() instead.
-     */ 
+     * @return array
+     * @throws \Exception if there were errors, making fetching results not applicable.
+     */
     public function getMergedResult() : array
     {
         if (count($this->m_errors) > 0)
@@ -192,6 +194,6 @@ class MultiQuery
      */
     public function wasSuccessful() : bool
     {
-        return ($this->m_hasErrors === FALSE);
+        return ($this->hasErrors() === FALSE);
     }
 }

@@ -1,18 +1,22 @@
 <?php
 
-require_once(__DIR__ . '/MultiQuery.php');
-require_once(__DIR__ . '/Transaction.php');
+require_once(__DIR__ . '/settings.php');
+require_once(__DIR__ . '/../src/MultiQuery.php');
+require_once(__DIR__ . '/../src/Transaction.php');
 
 
 function run()
 {
-    $connection = new mysqli('database.irap-dev.org', 'root', 'hickory2000', 'sync_db');
+    $connection = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
 
-    $multiQuery = new iRAP\MultiQuery\MultiQuery($connection);
-    $select1QueryIndex = $multiQuery->addQuery('SELECT * FROM `table1`');
-    $showTablesQueryIndex = $multiQuery->addQuery('SHOW TABLES`');
-    $select2QueryIndex = $multiQuery->addQuery('SELECT * FROM `table2`');
-    $multiQuery->run();
+    $queries = array(
+        'SELECT * FROM `Persons`',
+        'SHOW TABLES',
+        'SELECT * FROM `Persons`'
+    );
+    
+    $multiQuery = new iRAP\MultiQuery\MultiQuery($connection, $queries);
+    
     
     if ($multiQuery->hasErrors())
     {
@@ -44,10 +48,12 @@ function run()
     
     # // Example 2 - Fetch data from two tables that have exactly the same structure 
     # // e.g. a case of partitioning data using table names like "dataset1", "dataset2"
-    $multiQuery2 = new iRAP\MultiQuery\MultiQuery($connection);
-    $multiQuery2->addQuery('SELECT * FROM `table1`');
-    $multiQuery2->addQuery('SELECT * FROM `table2`');
-    $multiQuery2->run();
+    $partitionedTablesQueries = array(
+        'SELECT * FROM `table1`',
+        'SELECT * FROM `table2`'
+    );
+    
+    $multiQuery2 = new iRAP\MultiQuery\MultiQuery($connection, $partitionedTablesQueries);
     $mergedResult = $multiQuery2->getMergedResult();
     print "merged result: " . print_r($mergedResult, true) . PHP_EOL;
 }

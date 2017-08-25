@@ -49,17 +49,13 @@ class Transaction
      * @param int $retryAttempts - the number of times to retry a transaction if it fails.
      * @param int $retrySleepPeriod - the number of seconds to sleep between retry attempts
      */
-    public function __construct($mysqli, $retryAttempts=0, $retrySleepPeriod=1)
+    public function __construct($mysqli, array $queries, $retryAttempts=0, $retrySleepPeriod=1)
     {
+        $this->m_queries = $queries;
         $this->m_connection = $mysqli;
         $this->m_retryAttempts = $retryAttempts;
         $this->m_retrySleepPeriod = $retrySleepPeriod;
-    }
-    
-    
-    public function addQuery($query)
-    {
-        $this->m_queries[] = $query;
+        $this->run();
     }
     
     
@@ -68,7 +64,7 @@ class Transaction
      * the transaction.
      * This will attempt to execute the query
      */
-    public function run()
+    private function run()
     {
         $attempts_left = $this->m_retryAttempts;
         
@@ -103,14 +99,7 @@ class Transaction
             sleep(1);
         }
         
-        $this->m_multiQuery = new MultiQuery($this->m_connection);
-        
-        foreach ($this->m_queries as $query)
-        {
-            $this->m_multiQuery->addQuery($query);
-        }
-        
-        $this->m_multiQuery->run();
+        $this->m_multiQuery = new MultiQuery($this->m_connection, $this->m_queries);
         
         try
         {
@@ -169,5 +158,12 @@ class Transaction
     }
     
     
-    public function getStatus() { return $this->m_status; }
+    /**
+     * The opposite of hasErrors just so the programmer
+     * can write the code whichever way they like.
+     */
+    public function wasSuccessful() : bool
+    {
+        return ($this->m_status === self::STATE_SUCCEEDED);
+    }
 }
