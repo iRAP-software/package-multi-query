@@ -22,7 +22,7 @@ function run()
     }
     else 
     {
-        $tablesResult = $multiQuery->get_result($showTablesQueryIndex);
+        $tablesResult = $multiQuery->getResult($showTablesQueryIndex);
     
         if ($tablesResult === FALSE)
         {
@@ -36,7 +36,7 @@ function run()
             {
                 $tables[] = $row[0];
             }
-
+            
             print "tables: " . implode(", ", $tables);
         }
     }

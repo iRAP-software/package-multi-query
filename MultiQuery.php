@@ -146,7 +146,7 @@ class MultiQuery
      *                 all of fetch_assoc() into an array)
      * @throws Exception if there is no result for the specified index.
      */
-    public function get_result($index)
+    public function getResult($index)
     {
         if (count($this->m_errors) > 0)
         {

@@ -87,7 +87,7 @@ function badQueryTest(mysqli $mysqli)
     {
         try
         {
-            $result = $multiQuery->get_result(1);
+            $result = $multiQuery->getResult(1);
             
             # if we got here without get_result throwing an exception the test failed.
             print "badQueryTest:  FAILED" . PHP_EOL;
@@ -116,7 +116,7 @@ function goodMultiQueryTest(mysqli $mysqli)
     
     if ($multiQuery->getStatus() === iRAP\MultiQuery\MultiQuery::STATE_SUCCEEDED)
     {
-        $tablesResult = $multiQuery->get_result($showTablesQueryIndex);
+        $tablesResult = $multiQuery->getResult($showTablesQueryIndex);
         
         if ($tablesResult === FALSE)
         {
