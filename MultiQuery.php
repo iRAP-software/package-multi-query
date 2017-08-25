@@ -22,21 +22,16 @@ namespace iRAP\MultiQuery;
 
 class MultiQuery
 {
-    const STATE_NOT_SENT = 0; # multi query has not been sent
-    const STATE_SUCCEEDED = 1; # multi query sent and succeeded
-    const STATE_ERRORS = 2; # multiquery sent but had errors.
-    
     /* @var $m_connection \mysqli */
     private $m_connection;
     private $m_results = array();
     private $m_queries = array();
     private $m_errors = array();
-    private $m_status;
+    
     
     public function __construct(\mysqli $mysqli, array $queries)
     {
         $this->m_connection = $mysqli;
-        $this->m_status = self::STATE_NOT_SENT;
         $this->m_queries = $queries;
         $this->run();
     }
@@ -87,15 +82,6 @@ class MultiQuery
             
             $resultIndex++;
         } while($this->m_connection->more_results());
-        
-        if (count($this->m_errors) > 0)
-        {
-            $this->m_status = self::STATE_ERRORS;
-        }
-        else
-        {
-            $this->m_status = self::STATE_SUCCEEDED;
-        }
     }
     
     
@@ -106,7 +92,7 @@ class MultiQuery
      * WARNING: This method will chew through memory and is very inefficient, you may wwant to use
      * get_results() instead.
      */ 
-    public function getMergedResult()
+    public function getMergedResult() : array
     {
         if (count($this->m_errors) > 0)
         {
@@ -156,9 +142,10 @@ class MultiQuery
     /**
      * Return all of the results for the queries. This will require a bit more work than 
      * get_merged_result() but is far more memory efficient.
-     * @return array - array list of mysqli result sets that will need looping through.
+     * @return array - collection of mysqli result sets that will need looping through.
+     * @throws \Exception - if there were errors and thus cannot get results.
      */
-    public function getResults() 
+    public function getResults() : array
     {
         if (count($this->m_errors) > 0)
         {
@@ -173,7 +160,7 @@ class MultiQuery
      * Return all of the errors for the queries. 
      * @return array - list of errors indexed by the query id.
      */
-    public function get_errors() 
+    public function getErrors() : array
     {
         return $this->m_errors;
     }
@@ -183,7 +170,7 @@ class MultiQuery
      * Return the number of errors there were
      * @return int - the number of errors there were.
      */
-    public function get_error_count() 
+    public function getErrorCount() : int
     {
         return count($this->m_errors);
     }
@@ -191,10 +178,20 @@ class MultiQuery
     
     /**
      * Get the status of this multi query.
-     * @return int
+     * @return int - integer representing status
      */
-    public function getStatus()
+    public function hasErrors() : bool
     {
-        return $this->m_status;
+        return (count($this->m_errors) > 0);
+    }
+    
+    
+    /**
+     * The opposite of hasErrors just so the programmer
+     * can write the code whichever way they like.
+     */
+    public function wasSuccessful() : bool
+    {
+        return ($this->m_hasErrors === FALSE);
     }
 }

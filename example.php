@@ -14,9 +14,9 @@ function run()
     $select2QueryIndex = $multiQuery->addQuery('SELECT * FROM `table2`');
     $multiQuery->run();
     
-    if ($multiQuery->getStatus() === iRAP\MultiQuery\MultiQuery::STATE_SUCCEEDED)
+    if ($multiQuery->hasErrors())
     {
-        $errors = $multiQuery->get_errors();
+        $errors = $multiQuery->getErrors();
         
         // do something with the errors array such as use them in an exception message....
     }

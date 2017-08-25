@@ -83,7 +83,7 @@ function badQueryTest(mysqli $mysqli)
     
     $multiQuery->run();
     
-    if ($multiQuery->getStatus() === iRAP\MultiQuery\MultiQuery::STATE_ERRORS)
+    if ($multiQuery->hasErrors())
     {
         try
         {
@@ -114,7 +114,7 @@ function goodMultiQueryTest(mysqli $mysqli)
     
     $multiQuery->run();
     
-    if ($multiQuery->getStatus() === iRAP\MultiQuery\MultiQuery::STATE_SUCCEEDED)
+    if ($multiQuery->wasSuccessful())
     {
         $tablesResult = $multiQuery->getResult($showTablesQueryIndex);
         
