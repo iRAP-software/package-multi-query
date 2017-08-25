@@ -114,7 +114,7 @@ class Transaction
         
         try
         {
-            $results = $this->m_multiQuery->get_results();
+            $results = $this->m_multiQuery->getResults();
             $queriesSucceeded = true;
         } 
         catch (\Exception $ex) 

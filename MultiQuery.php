@@ -33,23 +33,12 @@ class MultiQuery
     private $m_errors = array();
     private $m_status;
     
-    public function __construct($mysqli)
+    public function __construct(\mysqli $mysqli, array $queries)
     {
         $this->m_connection = $mysqli;
         $this->m_status = self::STATE_NOT_SENT;
-    }
-    
-    
-    /**
-     * Add a query to the list of queries to send at once.
-     * @param string $query - the SQL query to add to this multiquery. E.g. "SHOW TABLES";
-     * @return int - the index of the query that you just added. You can use this later to get
-     *               the result for that query from this objects results.
-     */
-    public function addQuery($query)
-    {
-        $this->m_queries[] = $query;
-        return count($this->m_queries) - 1;
+        $this->m_queries = $queries;
+        $this->run();
     }
     
     
@@ -60,7 +49,7 @@ class MultiQuery
      * a resultset, so you need to use this with the return from next_result() which will tell
      * you whether the query succeeded or failed (1 or false)
      */
-    public function run()
+    private function run()
     {
         $queries_string = implode(';', $this->m_queries);
         $resultIndex = 0;
@@ -169,7 +158,7 @@ class MultiQuery
      * get_merged_result() but is far more memory efficient.
      * @return array - array list of mysqli result sets that will need looping through.
      */
-    public function get_results() 
+    public function getResults() 
     {
         if (count($this->m_errors) > 0)
         {
