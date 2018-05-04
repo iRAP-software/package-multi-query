@@ -16,7 +16,7 @@
  * status is set to STATE_FAILED.
  * 
  * WARNING
- *  - This class does NOT check whether any of the queries being added cause an implit commit.
+ *  - This class does NOT check whether any of the queries being added cause an implicit commit.
  *    This means that if one of your queries was to create, drop, or alter a table, the 
  *    transaction up to that point will be committed even if there were errors.
  *    For more information please refer to: 
@@ -42,6 +42,7 @@ class Transaction
     private $m_status = self::STATE_NOT_APPLICABLE;
     private $m_retryAttempts;
     private $m_retrySleepPeriod;
+    
     
     /**
      * Create the transaction object for sending mysqli transactions.
@@ -166,4 +167,12 @@ class Transaction
     {
         return ($this->m_status === self::STATE_SUCCEEDED);
     }
+    
+    
+    /**
+     * Get the queries that this transaction used. 
+     * Useful to have for debugging when a transaction fails.
+     * @return array - the array of query strings.
+     */
+    public function getQueries() : array { return $this->m_queries; }
 }
