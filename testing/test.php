@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * A quick script to test this package.
  */
 
@@ -22,8 +22,8 @@ function run()
 function init()
 {
     $mysqli = new \mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-    
-    $createQuery = 
+
+    $createQuery =
         "CREATE TABLE `Persons` (
           `id` int(11) NOT NULL AUTO_INCREMENT,
           `FirstName` varchar(255) NOT NULL,
@@ -31,7 +31,7 @@ function init()
           `LastUpdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
-    
+
     $mysqli->query($createQuery);
     return $mysqli;
 }
@@ -46,18 +46,18 @@ function transactionTest($mysqli)
         "INSERT INTO `Persons` SET `FirstName`='Joe', `LastName`='Smith'",
         "INSERT INTO `Persons` SET `FirstName`='Samantha', `LastName`='Smith'",
     );
-    
-    $insertTransaction = new iRAP\MultiQuery\Transaction($mysqli, $insertQueries);
-    
-    
+
+    $insertTransaction = new Programster\MultiQuery\Transaction($mysqli, $insertQueries);
+
+
     $selectQueries = array(
         "SELECT * FROM `Persons`",
         "SELECT * FROM `Persons`",
     );
-    
-    $selectTransaction = new iRAP\MultiQuery\Transaction($mysqli, $selectQueries);
+
+    $selectTransaction = new Programster\MultiQuery\Transaction($mysqli, $selectQueries);
     $results = $selectTransaction->getMultiQueryObject()->getMergedResult();
-    
+
     if ($selectTransaction->wasSuccessful())
     {
        print "Transaction test: PASSED" . PHP_EOL;
@@ -81,19 +81,19 @@ function badQueryTest(mysqli $mysqli)
         'bad query',
         'SHOW TABLES',
     );
-    
-    $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli, $queries);
-    
+
+    $multiQuery = new Programster\MultiQuery\MultiQuery($mysqli, $queries);
+
     if ($multiQuery->hasErrors())
     {
         try
         {
             $result = $multiQuery->getResult(1);
-            
+
             # if we got here without get_result throwing an exception the test failed.
             print "badQueryTest:  FAILED" . PHP_EOL;
-        } 
-        catch (Exception $ex) 
+        }
+        catch (Exception $ex)
         {
             print "badQueryTest: PASSED" . PHP_EOL;
         }
@@ -112,14 +112,14 @@ function goodMultiQueryTest(mysqli $mysqli)
         'SHOW TABLES',
         'SELECT * FROM `Persons`'
     );
-    
-    $multiQuery = new iRAP\MultiQuery\MultiQuery($mysqli, $queries);
+
+    $multiQuery = new Programster\MultiQuery\MultiQuery($mysqli, $queries);
     $showTablesQueryIndex = 1;
-    
+
     if ($multiQuery->wasSuccessful())
     {
         $tablesResult = $multiQuery->getResult($showTablesQueryIndex);
-        
+
         if ($tablesResult === FALSE)
         {
             print "goodMultiQueryTest: FAILED" . PHP_EOL;
@@ -127,12 +127,12 @@ function goodMultiQueryTest(mysqli $mysqli)
         else
         {
             $tables = array();
-            
+
             while (($row = $tablesResult->fetch_array()) !== null)
             {
                 $tables[] = $row[0];
             }
-            
+
             if (count($tables) == 1 && $tables[0] === "Persons")
             {
                 print "goodMultiQueryTest: PASSED" . PHP_EOL;

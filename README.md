@@ -16,7 +16,7 @@ $queries = array(
     "DROP TABLE `table3`"
 );
 
-$multiQuery = new iRAP\MultiQuery\MultiQuery($db, $queries);
+$multiQuery = new Programster\MultiQuery\MultiQuery($db, $queries);
 ```
 
 ### Full Example
@@ -38,7 +38,7 @@ $select1QueryIndex = 0;
 $showTablesQueryIndex = 1;
 $select2QueryIndex = 2;
 
-$multiQuery = new iRAP\MultiQuery\MultiQuery($connection, $queries);
+$multiQuery = new Programster\MultiQuery\MultiQuery($connection, $queries);
 
 
 if ($multiQuery->hasErrors())
@@ -83,7 +83,7 @@ $queries = array(
     'SELECT * FROM `table2`'
 );
 
-$multiQuery2 = new iRAP\MultiQuery\MultiQuery($connection, $queries);
+$multiQuery2 = new Programster\MultiQuery\MultiQuery($connection, $queries);
 $mergedResult = $multiQuery2->getMergedResult();
 print "merged result: " . print_r($mergedResult, true) . PHP_EOL;
 ```
@@ -99,7 +99,7 @@ $queries = array(
     'INSERT INTO `myTable` SELECT * FROM `myTable2` WHERE id = ' . $id
 );
 
-$transaction = new iRAP\MultiQuery\Transaction($mysqli, $queries);
+$transaction = new Programster\MultiQuery\Transaction($mysqli, $queries);
 
 if (!$transaction->wasSuccessful())
 {
@@ -120,7 +120,7 @@ $queries = array(
     ... # more quries here.
 );
 
-$transaction = new iRAP\MultiQuery\Transaction(
+$transaction = new Programster\MultiQuery\Transaction(
     $mysqli,
     $queries,
     $attempts=5,

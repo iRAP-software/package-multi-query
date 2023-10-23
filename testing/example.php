@@ -14,20 +14,20 @@ function run()
         'SHOW TABLES',
         'SELECT * FROM `Persons`'
     );
-    
-    $multiQuery = new iRAP\MultiQuery\MultiQuery($connection, $queries);
-    
-    
+
+    $multiQuery = new Programster\MultiQuery\MultiQuery($connection, $queries);
+
+
     if ($multiQuery->hasErrors())
     {
         $errors = $multiQuery->getErrors();
-        
+
         // do something with the errors array such as use them in an exception message....
     }
-    else 
+    else
     {
         $tablesResult = $multiQuery->getResult($showTablesQueryIndex);
-    
+
         if ($tablesResult === FALSE)
         {
             throw new Exception("Failed to fetch tables");
@@ -35,25 +35,25 @@ function run()
         else
         {
             $tables = array();
-            
+
             while (($row = $tablesResult->fetch_array()) !== null)
             {
                 $tables[] = $row[0];
             }
-            
+
             print "tables: " . implode(", ", $tables);
         }
     }
-        
-    
-    # // Example 2 - Fetch data from two tables that have exactly the same structure 
+
+
+    # // Example 2 - Fetch data from two tables that have exactly the same structure
     # // e.g. a case of partitioning data using table names like "dataset1", "dataset2"
     $partitionedTablesQueries = array(
         'SELECT * FROM `table1`',
         'SELECT * FROM `table2`'
     );
-    
-    $multiQuery2 = new iRAP\MultiQuery\MultiQuery($connection, $partitionedTablesQueries);
+
+    $multiQuery2 = new Programster\MultiQuery\MultiQuery($connection, $partitionedTablesQueries);
     $mergedResult = $multiQuery2->getMergedResult();
     print "merged result: " . print_r($mergedResult, true) . PHP_EOL;
 }
