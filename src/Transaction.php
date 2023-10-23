@@ -95,10 +95,9 @@ class Transaction
             sleep(1);
         }
 
-        $this->m_multiQuery = new MultiQuery($this->m_connection, $this->m_queries);
-
         try
         {
+            $this->m_multiQuery = new MultiQuery($this->m_connection, $this->m_queries);
             $results = $this->m_multiQuery->getResults();
             $queriesSucceeded = true;
         }
