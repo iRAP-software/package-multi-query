@@ -71,12 +71,16 @@ class Transaction
 
             if ($this->m_status !== TransactionStatus::SUCCEEDED)
             {
-                $warning_msg = "Transaction failed.";
-                trigger_error($warning_msg, E_USER_WARNING);
-
                 if ($attemptsLeft > 0)
                 {
+                    $warning_msg = "Transaction attempt failed. Trying again in {$this->m_retrySleepPeriod} seconds.";
+                    trigger_error($warning_msg, E_USER_WARNING);
                     sleep($this->m_retrySleepPeriod);
+                }
+                else
+                {
+                    $warning_msg = "All {$this->m_retryAttempts} transaction attempts failed.";
+                    trigger_error($warning_msg, E_USER_WARNING);
                 }
             }
         } while ($this->m_status !== TransactionStatus::SUCCEEDED && $attemptsLeft > 0);
