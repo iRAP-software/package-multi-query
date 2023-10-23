@@ -11,7 +11,7 @@
             "email": "sdpagent@gmail.com",
             "homepage": "https://blog.programster.org/",
             "role": "Developer"
-        },
+        }
     ],
     "require": {
         "php": ">=8.2",
