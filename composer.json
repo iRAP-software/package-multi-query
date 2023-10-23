@@ -1,29 +1,30 @@
 {
-    "name": "irap/multi-query",
+    "name": "programster/multi-query",
     "type": "library",
     "description": "Wrapper object around mysqli to combine queries into one.",
     "keywords": ["mysql"],
-    "homepage": "http://www.irap.org/",
+    "homepage": "http://blog.programster.org/",
     "license": "none",
     "authors": [
         {
             "name": "Stuart Page",
-            "email": "stuart.page@irap.org",
-            "homepage": "http://irap.org/",
+            "email": "sdpagent@gmail.com",
+            "homepage": "https://blog.programster.org/",
             "role": "Developer"
-        }
+        },
     ],
     "require": {
-        "php": ">=7.0"
+        "php": ">=8.2",
+        "ext-mysqli": "*"
     },
     "autoload": {
         "psr-4": {
-            "iRAP\\MultiQuery\\": "src"
+            "Programster\\MultiQuery\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "iRAP\\MultiQuery\\Testing\\": "testing"
+            "Programster\\MultiQuery\\Testing\\": "testing"
         }
     }
 }
