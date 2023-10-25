@@ -27,6 +27,7 @@ class MultiQuery
     private $m_results = array();
     private $m_queries = array();
     private $m_errors = array();
+    private $m_exceptions = array();
     
     
     public function __construct(\mysqli $mysqli, array $queries)
@@ -56,7 +57,8 @@ class MultiQuery
                 try {
                     $resultBool = mysqli_multi_query($this->m_connection, $queries_string);
                 }
-                catch (\Exception) {
+                catch (\Exception $ex) {
+                    $this->m_exceptions[] = $ex;
                     $resultBool = false;
                 }
             }
@@ -65,7 +67,8 @@ class MultiQuery
                 try {
                     $resultBool = $this->m_connection->next_result();
                 }
-                catch (\Exception) {
+                catch (\Exception $ex) {
+                    $this->m_exceptions[] = $ex;
                     $resultBool = false;
                 }
             }
@@ -82,8 +85,9 @@ class MultiQuery
             try {
                 $resultSet = mysqli_store_result($this->m_connection);
             }
-            catch(\Exception) {
+            catch(\Exception $ex) {
                 // error reporting in PHP8.1+_ throws an exception
+                $this->m_exceptions[] = $ex;
                 // actual errors are captured elsehwere
                 $resultSet = false;
             }
@@ -146,7 +150,10 @@ class MultiQuery
         {
             throw new \Exception("Cannot get result as there were errors in your multiquery.");
         }
-        
+        if (count($this->m_exceptions) > 0)
+        {
+            throw new \Exception("Cannot get result as there were exceptions raised from your multiquery.");
+        }
         if (isset($this->m_results[$index]))
         {
             return $this->m_results[$index];
@@ -170,7 +177,12 @@ class MultiQuery
         {
             throw new \Exception("Cannot get results as there were errors in your multiquery.");
         }
-        
+
+        if (count($this->m_exceptions) > 0)
+        {
+            throw new \Exception("Cannot get results as there were exceptions in your multiquery.");
+        }
+
         return $this->m_results;
     }
     
@@ -184,7 +196,15 @@ class MultiQuery
         return $this->m_errors;
     }
     
-    
+    /**
+     * Return all of the exceptions for the queries.
+     * @return array - list of exceptions raised from running the multiquery
+     */
+    public function getExceptions() : array
+    {
+        return $this->m_exceptions;
+    }
+
     /**
      * Return the number of errors there were
      * @return int - the number of errors there were.
@@ -194,6 +214,14 @@ class MultiQuery
         return count($this->m_errors);
     }
     
+     /**
+     * Return the number of exceptions there were
+     * @return int - the number of errors there were.
+     */
+    public function getExceptionCount() : int
+    {
+        return count($this->m_exceptions);
+    }
     
     /**
      * Get the status of this multi query.
@@ -204,6 +232,24 @@ class MultiQuery
         return (count($this->m_errors) > 0);
     }
     
+    /**
+     * Get the status of this multi query.
+     * @return bool - true if has errors
+     */
+    public function hasExceptions() : bool
+    {
+        return (count($this->m_exceptions) > 0);
+    }
+
+
+    /**
+     * Returns whether this has errors or exceptions.
+     * @return bool - false if there are no issues (exceptions or errors), true for anything else.
+     */
+    public function hasErrorsOrExceptions() : bool
+    {
+        return ($this->hasExceptions() || $this->hasErrors());
+    }
     
     /**
      * The opposite of hasErrors just so the programmer
@@ -211,6 +257,6 @@ class MultiQuery
      */
     public function wasSuccessful() : bool
     {
-        return ($this->hasErrors() === FALSE);
+        return ($this->hasErrorsOrExceptions() === FALSE);
     }
 }

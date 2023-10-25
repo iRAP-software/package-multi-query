@@ -100,12 +100,21 @@ class Transaction
             sleep(1);
         }
         
-        $this->m_multiQuery = new MultiQuery($this->m_connection, $this->m_queries);
+        $results = [];
+
         
         try
         {
-            $results = $this->m_multiQuery->getResults();
-            $queriesSucceeded = true;
+            $this->m_multiQuery = new MultiQuery($this->m_connection, $this->m_queries);
+
+            if ($this->m_multiQuery->wasSuccessful())
+            {
+                $results = $this->m_multiQuery->getResults();
+                $queriesSucceeded = true;
+            }
+            else {
+                $queriesSucceeded = false;
+            }
         } 
         catch (\Exception $ex) 
         {
@@ -114,7 +123,7 @@ class Transaction
             $queriesSucceeded = false;
         }
         
-        if ($queriesSucceeded && count($results) != count($this->m_queries))
+        if ($queriesSucceeded && count($results) !== count($this->m_queries))
         {
             # Safety check, should not happen if there were no errors
             $errMsg = "Transaction number of results [" . count($results) . "] does not equal "
