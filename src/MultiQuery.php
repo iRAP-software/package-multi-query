@@ -53,11 +53,21 @@ class MultiQuery
         {
             if ($resultIndex === 0)
             {
-                $resultBool = mysqli_multi_query($this->m_connection, $queries_string);
+                try {
+                    $resultBool = mysqli_multi_query($this->m_connection, $queries_string);
+                }
+                catch (\Exception) {
+                    $resultBool = false;
+                }
             }
             else
             {
-                $resultBool = $this->m_connection->next_result();
+                try {
+                    $resultBool = $this->m_connection->next_result();
+                }
+                catch (\Exception) {
+                    $resultBool = false;
+                }
             }
             
             $errorStr = mysqli_error($this->m_connection);
@@ -69,9 +79,16 @@ class MultiQuery
             
             // Dont forget that unlike mysqli->query, mysqli_store_result returns false for any 
             // queries that did not return a resultset, such as an insert statement.
-            $resultSet = mysqli_store_result($this->m_connection);
+            try {
+                $resultSet = mysqli_store_result($this->m_connection);
+            }
+            catch(\Exception) {
+                // error reporting in PHP8.1+_ throws an exception
+                // actual errors are captured elsehwere
+                $resultSet = false;
+            }
             
-            if ($resultSet === FALSE) # first query may not have returned a resultset, just a true or false.
+            if ($resultSet === false) # first query may not have returned a resultset, just a true or false.
             {
                 $this->m_results[$resultIndex] = false;
             }
@@ -86,10 +103,10 @@ class MultiQuery
     
     
     /**
-     * This acts similar to having run a JOIN (but means that you dont have to use db CPU)
+     * This acts similar to having run a JOIN (but means that you don't have to use db CPU)
      * It will perform a straight forward merge of the results. Beware that this has no clever
      * handling of columns that exist in some datasets and not others, they will just be not set.
-     * WARNING: This method will chew through memory and is very inefficient, you may wwant to use
+     * WARNING: This method will chew through memory and is very inefficient, you may want to use
      * get_results() instead.
      * @return array
      * @throws \Exception if there were errors, making fetching results not applicable.
@@ -120,7 +137,7 @@ class MultiQuery
      * @param int $index - the index of the query that was sent that we want the result of. E.g. 
      *                     the order of the query as it was added to this object, starting from 0
      * @return Array - a list of assoc arrays representing rows in the database. (e.g. putting
-     *                 all of fetch_assoc() into an array)
+     *                 all of fetch_assoc() into an array).
      * @throws Exception if there is no result for the specified index.
      */
     public function getResult($index)
@@ -142,7 +159,7 @@ class MultiQuery
     
     
     /**
-     * Return all of the results for the queries. This will require a bit more work than 
+     * Return all the results for the queries. This will require a bit more work than
      * get_merged_result() but is far more memory efficient.
      * @return array - collection of mysqli result sets that will need looping through.
      * @throws \Exception - if there were errors and thus cannot get results.
@@ -180,7 +197,7 @@ class MultiQuery
     
     /**
      * Get the status of this multi query.
-     * @return int - integer representing status
+     * @return bool - integer representing status
      */
     public function hasErrors() : bool
     {
